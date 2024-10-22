@@ -50,13 +50,13 @@
     <!-- Firebase Configuration -->
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
-            authDomain: "lil-testing.firebaseapp.com",
-            databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
-            projectId: "lil-testing",
-            storageBucket: "lil-testing.appspot.com",
-            messagingSenderId: "309006701748",
-            appId: "1:309006701748:web:2cfa73093e14fbcc2af3e1"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
         firebase.initializeApp(firebaseConfig);
     </script>
@@ -66,7 +66,17 @@
         const localVideo = document.getElementById('localVideo');
         const remoteVideo = document.getElementById('remoteVideo');
         const hangupBtn = document.getElementById('hangupBtn');
+        let localStream;
+        let peerConnection;
         let currentRoom = null;
+
+        const servers = {
+            iceServers: [
+                {
+                    urls: 'stun:stun.l.google.com:19302'
+                }
+            ]
+        };
 
         // Listen for available rooms in real-time
         firebase.database().ref('rooms').on('value', (snapshot) => {
@@ -97,14 +107,51 @@
                 .then(stream => {
                     localVideo.style.display = 'block';
                     localVideo.srcObject = stream;
+                    localStream = stream;
                     localVideo.muted = true;  // Mute local video playback
                     firebase.database().ref('rooms/' + roomID).update({
                         status: "occupied"
                     });
 
-                    // Placeholder for handling the remote video/audio stream
-                    // (In a real app, this is where you'd use WebRTC or a similar technology)
-                    // remoteVideo.srcObject = remoteStream; // Example: set remote stream
+                    // Initialize WebRTC peer connection
+                    peerConnection = new RTCPeerConnection(servers);
+                    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+                    // Handle receiving remote stream
+                    peerConnection.ontrack = event => {
+                        remoteVideo.style.display = 'block';
+                        remoteVideo.srcObject = event.streams[0];
+                    };
+
+                    // Listen for ICE candidates
+                    peerConnection.onicecandidate = event => {
+                        if (event.candidate) {
+                            firebase.database().ref('rooms/' + roomID + '/iceCandidates').push(JSON.stringify(event.candidate));
+                        }
+                    };
+
+                    // Listen for remote session description (SDP)
+                    firebase.database().ref('rooms/' + roomID + '/sdp').on('value', snapshot => {
+                        const sdpData = snapshot.val();
+                        if (sdpData && !peerConnection.currentRemoteDescription) {
+                            peerConnection.setRemoteDescription(new RTCSessionDescription(sdpData));
+                            peerConnection.createAnswer()
+                                .then(answer => {
+                                    peerConnection.setLocalDescription(answer);
+                                    firebase.database().ref('rooms/' + roomID + '/sdp').set(JSON.stringify(answer));
+                                });
+                        }
+                    });
+
+                    // Listen for ICE candidates
+                    firebase.database().ref('rooms/' + roomID + '/iceCandidates').on('child_added', snapshot => {
+                        const candidateData = snapshot.val();
+                        if (candidateData) {
+                            const candidate = new RTCIceCandidate(JSON.parse(candidateData));
+                            peerConnection.addIceCandidate(candidate);
+                        }
+                    });
+
                 })
                 .catch(error => {
                     console.error('Error accessing media devices:', error);
@@ -127,6 +174,12 @@
                 remoteVideo.style.display = 'none';
                 hangupBtn.style.display = 'none';
                 roomsList.style.display = 'block';  // Show room list again
+
+                // Close WebRTC peer connection
+                if (peerConnection) {
+                    peerConnection.close();
+                    peerConnection = null;
+                }
 
                 currentRoom = null;
             }

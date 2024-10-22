@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Room</title>
+    <style>
+        #remoteVideo {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Join a Room</h1>
+
+    <!-- List of Available Rooms -->
+    <div id="roomList"></div>
+
+    <!-- Video Stream Display for Remote User -->
+    <video id="remoteVideo" autoplay playsinline></video>
+
+    <!-- End Room Button -->
+    <button id="endRoomButton" style="display: none;">End Room</button>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script>
+        const firebaseConfig = {
+              apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
+  authDomain: "lil-testing.firebaseapp.com",
+  databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
+  projectId: "lil-testing",
+  storageBucket: "lil-testing.appspot.com",
+  messagingSenderId: "309006701748",
+  appId: "1:309006701748:web:2cfa73093e14fbcc2af3e1"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <script>
+        // Fetch available rooms from Firebase
+        firebase.database().ref('rooms').on('value', (snapshot) => {
+            const rooms = snapshot.val();
+            const roomList = document.getElementById('roomList');
+            roomList.innerHTML = '';
+
+            for (const room in rooms) {
+                if (rooms[room].status === "available") {
+                    const roomButton = document.createElement('button');
+                    roomButton.innerText = "Join Room " + room;
+                    roomButton.onclick = () => joinRoom(room);
+                    roomList.appendChild(roomButton);
+                }
+            }
+        });
+
+        function joinRoom(roomID) {
+            console.log("Joining room: " + roomID);
+            // Here, you would implement WebRTC connection to the room's video stream
+            // Simulating video stream by copying from Code 1 (local stream)
+            const remoteVideo = document.getElementById('remoteVideo');
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    remoteVideo.srcObject = stream;
+                });
+
+            // Set up "End Room" button functionality
+            const endRoomButton = document.getElementById('endRoomButton');
+            endRoomButton.style.display = 'block'; // Show the button
+            endRoomButton.onclick = () => endRoom(roomID);
+        }
+
+        function endRoom(roomID) {
+            // Delete the room from Firebase
+            firebase.database().ref('rooms/' + roomID).remove();
+
+            // Disconnect all users from the room (simulate disconnect)
+            alert("Room ended. Users disconnected.");
+            // Clear the video stream (optional)
+            const remoteVideo = document.getElementById('remoteVideo');
+            remoteVideo.srcObject = null;
+
+            // Hide "End Room" button
+            document.getElementById('endRoomButton').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

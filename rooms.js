@@ -16,18 +16,22 @@ if (!firebase.apps.length) {
 }
 const database = firebase.database();
 
-const servers = {
-  iceServers: [{ urls: ['stun:stun1.l.google.com:19302'] }],
-  iceCandidatePoolSize: 10,
-};
-
-// DOM elements
 const roomsList = document.getElementById('roomsList');
 
 function displayAvailableRooms() {
   const roomsRef = database.ref('rooms');
+
+  // Listen for changes to the rooms node
   roomsRef.on('value', (snapshot) => {
     roomsList.innerHTML = ''; // Clear the list
+
+    // Check if there are any rooms available
+    if (!snapshot.exists()) {
+      roomsList.textContent = 'No available rooms at the moment.';
+      return;
+    }
+
+    // Iterate through rooms and create room elements
     snapshot.forEach((roomSnapshot) => {
       const roomId = roomSnapshot.key;
       const roomDiv = document.createElement('div');
@@ -39,38 +43,37 @@ function displayAvailableRooms() {
 }
 
 async function joinRoom(roomId) {
-  // Initialize peer connection
-  const pc = new RTCPeerConnection(servers);
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: ['stun:stun1.l.google.com:19302'] }],
+    iceCandidatePoolSize: 10,
+  });
+
   let localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
   let remoteStream = new MediaStream();
 
-  // Add local stream tracks to the peer connection
   localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
-
-  // Set up remote stream handling
   pc.ontrack = (event) => {
     event.streams[0].getTracks().forEach((track) => remoteStream.addTrack(track));
   };
 
-  // Get room reference from database
   const roomRef = database.ref(`rooms/${roomId}`);
   const roomSnapshot = await roomRef.get();
   const roomData = roomSnapshot.val();
 
-  // Handle incoming offer and set remote description
-  const offer = roomData.offer;
-  await pc.setRemoteDescription(new RTCSessionDescription(offer));
+  if (!roomData || !roomData.offer) {
+    alert('Invalid room ID or the room has no offer.');
+    return;
+  }
 
-  // Create answer
+  await pc.setRemoteDescription(new RTCSessionDescription(roomData.offer));
   const answer = await pc.createAnswer();
   await pc.setLocalDescription(answer);
 
-  // Update Firebase with the answer
   roomRef.update({ answer });
-
-  // Display streams (this can be enhanced with video elements similar to `main.js`)
-  document.body.appendChild(document.createTextNode("Joined Room! Local and remote streams are active."));
 }
+
+// Display the list of rooms when the page loads
+displayAvailableRooms();
 
 // Display the list of rooms when the page loads
 displayAvailableRooms();

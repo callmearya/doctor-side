@@ -1,14 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Join a Room</title>
-</head>
-<body>
-  <h2>Available Rooms</h2>
-  <div id="roomsList"></div> <!-- List of available rooms -->
-  <script type="module" src="/rooms.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Available Rooms</title>
+    <!-- Firebase App (Core SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+    <!-- Firebase Realtime Database SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
+  </head>
+  <body>
+    <h2>Available Rooms</h2>
+    <div id="roomsList">Loading rooms...</div>
+    
+    <!-- Video Elements for WebRTC Stream -->
+    <div class="videos">
+      <h3>Local Stream</h3>
+      <video id="localVideo" autoplay playsinline></video>
+      <h3>Remote Stream</h3>
+      <video id="remoteVideo" autoplay playsinline></video>
+    </div>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
+  authDomain: "lil-testing.firebaseapp.com",
+  databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
+  projectId: "lil-testing",
+  storageBucket: "lil-testing.appspot.com",
+  messagingSenderId: "309006701748",
+  appId: "1:309006701748:web:2cfa73093e14fbcc2af3e1"
+      };
+
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+
+      const roomsList = document.getElementById('roomsList');
+      const localVideo = document.getElementById('localVideo');
+      const remoteVideo = document.getElementById('remoteVideo');
+      let pc = null; // Define peer connection
+
+      function displayAvailableRooms() {
+        const roomsRef = database.ref('rooms');
+
+        // Listen for changes to the rooms node
+        roomsRef.on('value', (snapshot) => {
+          roomsList.innerHTML = ''; // Clear the list
+
+          if (!snapshot.exists()) {
+            roomsList.textContent = 'No available rooms at the moment.';
+            return;
+          }
+
+          // Iterate through rooms and create room elements
+          snapshot.forEach((roomSnapshot) => {
+            const roomId = roomSnapshot.key;
+            const roomDiv = document.createElement('div');
+            roomDiv.textContent = `Room ID: ${roomId}`;
+            roomDiv.style.cursor = 'pointer';
+            roomDiv.onclick = () => joinRoom(roomId); // Attach click event to join room
+            roomsList.appendChild(roomDiv);
+          });
+        });
+      }
+
+      async function joinRoom(roomId) {
+        // WebRTC setup
+        pc = new RTCPeerConnection({
+          iceServers: [{ urls: ['stun:stun1.l.google.com:19302'] }],
+          iceCandidatePoolSize: 10,
+        });
+
+        // Get local stream
+        const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
+        localVideo.srcObject = localStream;
+
+        // Prepare for remote stream
+        const remoteStream = new MediaStream();
+        pc.ontrack = (event) => {
+          event.streams[0].getTracks().forEach((track) => remoteStream.addTrack(track));
+        };
+        remoteVideo.srcObject = remoteStream;
+
+        // Connect to the specified room
+        const roomRef = database.ref(`rooms/${roomId}`);
+        const roomSnapshot = await roomRef.get();
+        const roomData = roomSnapshot.val();
+
+        if (!roomData || !roomData.offer) {
+          alert('Invalid room ID or the room has no offer.');
+          return;
+        }
+
+        // Set remote offer description
+        await pc.setRemoteDescription(new RTCSessionDescription(roomData.offer));
+        
+        // Create and set answer
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        // Save answer in Firebase
+        roomRef.update({ answer });
+      }
+
+      // Display the list of rooms when the page loads
+      displayAvailableRooms();
+    </script>
+  </body>
 </html>

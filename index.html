@@ -1,26 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Join Room</title>
-  </head>
-  <body>
-    <h2>Join a Room</h2>
-    <input type="text" id="roomInput" placeholder="Enter Room ID" />
-    <button id="joinRoomButton">Join Room</button>
-    <div class="videos">
-      <span>
-        <h3>Local Stream</h3>
-        <video id="webcamVideo" autoplay playsinline></video>
-      </span>
-      <span>
-        <h3>Remote Stream</h3>
-        <video id="remoteVideo" autoplay playsinline></video>
-      </span>
-    </div>
-    <button id="hangupButton" disabled>Hangup</button>
-    <script type="module" src="./main.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join Room</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <h1>Join a Video Room</h1>
+  <input type="text" id="roomInput" placeholder="Enter Room ID">
+  <button id="joinRoomButton">Join Room</button>
+  <button id="hangupButton" disabled>Hang Up</button>
+
+  <div class="videos">
+    <video id="webcamVideo" autoplay playsinline></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
 </html>

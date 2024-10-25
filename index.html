@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Call Room</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Firebase App and Realtime Database -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body>
+  <h2>Start your Webcam</h2>
+  <div class="videos">
+    <span>
+      <h3>Local Stream</h3>
+      <video id="localVideo" autoplay playsinline></video>
+    </span>
+    <span>
+      <h3>Remote Stream</h3>
+      <video id="remoteVideo" autoplay playsinline></video>
+    </span>
+  </div>
+
+  <button id="createRoomButton">Create Room</button>
+  <input id="roomIdInput" placeholder="Enter Room ID" />
+  <button id="joinRoomButton">Join Room</button>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
+  authDomain: "lil-testing.firebaseapp.com",
+  databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
+  projectId: "lil-testing",
+  storageBucket: "lil-testing.appspot.com",
+  messagingSenderId: "309006701748",
+  appId: "1:309006701748:web:2cfa73093e14fbcc2af3e1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const roomIdInput = document.getElementById('roomIdInput');
+    const createRoomButton = document.getElementById('createRoomButton');
+    const joinRoomButton = document.getElementById('joinRoomButton');
+
+    // Check for a selected room in local storage
+    window.onload = () => {
+      const selectedRoomId = localStorage.getItem('selectedRoomId');
+      if (selectedRoomId) {
+        roomIdInput.value = selectedRoomId;
+        localStorage.removeItem('selectedRoomId'); // Clear it once used
+        // Optionally, trigger join room functionality
+      }
+    };
+
+    createRoomButton.onclick = async () => {
+      const roomId = database.ref('rooms').push().key;
+      await database.ref(`rooms/${roomId}`).set({ status: 'available' });
+      roomIdInput.value = roomId;
+      alert(`Room created with ID: ${roomId}`);
+    };
+
+    joinRoomButton.onclick = () => {
+      const roomId = roomIdInput.value;
+      if (roomId) {
+        alert(`Joining room: ${roomId}`);
+        // Add WebRTC connection setup here
+      }
+    };
+  </script>
+</body>
+</html>

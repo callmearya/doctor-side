@@ -67,10 +67,13 @@ joinRoomButton.onclick = async () => {
   roomRef.child('answer').set(answer);
 
   hangupButton.disabled = false;
-  hangupButton.onclick = () => {
-    // Clean up and hang up the call
+ hangupButton.onclick = () => {
+  try {
     localStream.getTracks().forEach(track => track.stop());
     pc.close();
     roomRef.remove(); // Remove the room from the database
-    window.location.href = '../index.html';
-  };
+    window.location.href = '../index.html'; // Adjust path as needed
+  } catch (error) {
+    console.error("Error during hangup: ", error);
+  }
+};

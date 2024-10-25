@@ -72,4 +72,4 @@ joinRoomButton.onclick = async () => {
     localStream.getTracks().forEach(track => track.stop());
     pc.close();
     roomRef.remove(); // Remove the room from the database
-    window.location.href = '../
+    window.location.href = '../index.html';

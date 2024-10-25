@@ -73,3 +73,4 @@ joinRoomButton.onclick = async () => {
     pc.close();
     roomRef.remove(); // Remove the room from the database
     window.location.href = '../index.html';
+  };

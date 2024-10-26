@@ -1,6 +1,6 @@
 // room.js
-import firebase from 'firebase/app';
-import 'firebase/database';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, child, get, remove } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
@@ -12,11 +12,9 @@ const firebaseConfig = {
   appId: "1:309006701748:web:2cfa73093e14fbcc2af3e1"
 };
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-
-const db = firebase.database();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 const hangupButton = document.getElementById('hangupButton');
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
@@ -29,12 +27,12 @@ async function joinRoom() {
   localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
   localVideo.srcObject = localStream;
 
-  const roomRef = db.ref(`rooms/${roomId}`);
-  const participantsRef = roomRef.child('participants');
+  const roomRef = ref(db, `rooms/${roomId}`);
+  const participantsRef = child(roomRef, 'participants');
 
   // Add local participant
-  const localParticipant = participantsRef.push();
-  localParticipant.set({ joinedAt: Date.now() });
+  const localParticipant = push(participantsRef);
+  set(localParticipant, { joinedAt: Date.now() });
 
   // Listen for remote stream
   pc.ontrack = (event) => {
@@ -53,12 +51,12 @@ async function joinRoom() {
 // End Call and Delete Room
 async function endCall(roomRef, localParticipant) {
   // Remove participant
-  await localParticipant.remove();
+  await remove(localParticipant);
 
   // Check if any participants are left
-  const snapshot = await roomRef.child('participants').once('value');
+  const snapshot = await get(participantsRef);
   if (!snapshot.exists()) {
-    await roomRef.remove(); // Delete room if no participants left
+    await remove(roomRef); // Delete room if no participants left
   }
 
   // Close streams and peer connection

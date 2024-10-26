@@ -1,9 +1,10 @@
-// room.js
+import './style.css';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, child, get, remove } from 'firebase/database';
+import { getDatabase, ref, onValue, remove } from 'firebase/database';
+import { RTCPeerConnection, RTCSessionDescription } from 'wrtc';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
+  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3e1WrQ",
   authDomain: "lil-testing.firebaseapp.com",
   databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
   projectId: "lil-testing",
@@ -15,54 +16,58 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const hangupButton = document.getElementById('hangupButton');
-const localVideo = document.getElementById('localVideo');
-const remoteVideo = document.getElementById('remoteVideo');
-const roomId = new URLSearchParams(window.location.search).get('roomId');
-const pc = new RTCPeerConnection(/* ICE Servers */);
+
+const servers = {
+  iceServers: [
+    {
+      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
+    },
+  ],
+  iceCandidatePoolSize: 10,
+};
+
+// Global State
+const pc = new RTCPeerConnection(servers);
 let localStream = null;
 
-// Join Room and Set Up Stream
-async function joinRoom() {
+// HTML elements
+const webcamVideo = document.getElementById('webcamVideo');
+const hangupButton = document.getElementById('hangupButton');
+
+// Start the webcam and join the room
+const joinRoom = async (roomId) => {
   localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-  localVideo.srcObject = localStream;
+  localStream.getTracks().forEach((track) => {
+    pc.addTrack(track, localStream);
+  });
+  webcamVideo.srcObject = localStream;
 
-  const roomRef = ref(db, `rooms/${roomId}`);
-  const participantsRef = child(roomRef, 'participants');
+  // Listen for the room offer
+  const roomRef = ref(db, `calls/${roomId}`);
+  onValue(roomRef, (snapshot) => {
+    const roomData = snapshot.val();
+    if (roomData && roomData.offer) {
+      pc.setRemoteDescription(new RTCSessionDescription(roomData.offer));
+    }
+  });
 
-  // Add local participant
-  const localParticipant = push(participantsRef);
-  set(localParticipant, { joinedAt: Date.now() });
-
-  // Listen for remote stream
-  pc.ontrack = (event) => {
-    remoteVideo.srcObject = event.streams[0];
+  // Hangup button functionality
+  hangupButton.onclick = () => {
+    hangupRoom(roomId);
   };
+};
 
-  // Setup signaling listeners (using your WebRTC signaling logic)
-  // ...
+// Hangup Room function
+const hangupRoom = (roomId) => {
+  const roomRef = ref(db, `calls/${roomId}`);
+  remove(roomRef); // Delete the call offer
+  pc.close(); // Close the peer connection
+  localStream.getTracks().forEach(track => track.stop()); // Stop local tracks
+  console.log(`Left room: ${roomId}`);
+};
 
-  // Hangup button
-  hangupButton.onclick = async () => {
-    await endCall(roomRef, localParticipant);
-  };
+// Fetch room ID from URL or any other method to get the room ID
+const roomId = new URLSearchParams(window.location.search).get('roomId');
+if (roomId) {
+  joinRoom(roomId);
 }
-
-// End Call and Delete Room
-async function endCall(roomRef, localParticipant) {
-  // Remove participant
-  await remove(localParticipant);
-
-  // Check if any participants are left
-  const snapshot = await get(participantsRef);
-  if (!snapshot.exists()) {
-    await remove(roomRef); // Delete room if no participants left
-  }
-
-  // Close streams and peer connection
-  localStream.getTracks().forEach(track => track.stop());
-  pc.close();
-  window.location.href = '/';
-}
-
-joinRoom();

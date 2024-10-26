@@ -3,7 +3,7 @@ import firebase from 'firebase/app';
 import 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3e1WrQ",
+  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
   authDomain: "lil-testing.firebaseapp.com",
   databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
   projectId: "lil-testing",

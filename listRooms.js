@@ -1,9 +1,9 @@
-// listRooms.js
+import './style.css';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue } from 'firebase/database';
+import { getDatabase, ref, onValue, remove } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
+  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3e1WrQ",
   authDomain: "lil-testing.firebaseapp.com",
   databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
   projectId: "lil-testing",
@@ -15,29 +15,47 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+
+// HTML elements
 const roomsList = document.getElementById('roomsList');
 
-async function fetchRooms() {
-  const roomsRef = ref(db, 'rooms');
+// Fetch and display active rooms
+const fetchRooms = () => {
+  const roomsRef = ref(db, 'calls');
   onValue(roomsRef, (snapshot) => {
-    roomsList.innerHTML = ''; // Clear existing rooms
-    snapshot.forEach((roomSnapshot) => {
-      const room = roomSnapshot.val();
-      const roomId = roomSnapshot.key;
-      const isFull = room.participants && Object.keys(room.participants).length >= 2;
-      const roomElement = document.createElement('button');
-      roomElement.textContent = `Room ${roomId}`;
-      roomElement.disabled = isFull; // Grey out if full
-      roomElement.classList.add(isFull ? 'room-full' : 'room-available');
-      roomElement.onclick = () => joinRoom(roomId);
+    roomsList.innerHTML = ''; // Clear previous list
+    snapshot.forEach((childSnapshot) => {
+      const roomId = childSnapshot.key;
+      const roomData = childSnapshot.val();
+      const isFull = roomData.participants >= 2; // Assuming you track participants
+
+      const roomElement = document.createElement('div');
+      roomElement.textContent = `Room: ${roomId}`;
+      roomElement.style.cursor = isFull ? 'not-allowed' : 'pointer';
+      roomElement.style.opacity = isFull ? '0.5' : '1';
+
+      if (!isFull) {
+        roomElement.onclick = () => {
+          joinRoom(roomId);
+        };
+      }
+
       roomsList.appendChild(roomElement);
     });
   });
-}
+};
 
-function joinRoom(roomId) {
-  // Navigate to the room page or initiate joining logic
-  window.location.href = `/room.html?roomId=${roomId}`;
-}
+// Join Room function
+const joinRoom = async (roomId) => {
+  // Here you can implement the logic to navigate to the room
+  console.log(`Joining room: ${roomId}`);
+  
+  // After joining, you might want to remove the room offer from the database
+  const roomRef = ref(db, `calls/${roomId}`);
+  remove(roomRef); // Delete the room offer
+  
+  // Implement your room joining logic here
+};
 
+// Fetch rooms on load
 fetchRooms();

@@ -1,22 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Join Room</title>
-  <link rel="stylesheet" href="./style.css">
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Available Rooms</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Join a Video Room</h1>
-  <input type="text" id="roomInput" placeholder="Enter Room ID">
-  <button id="joinRoomButton">Join Room</button>
-  <button id="hangupButton" disabled>Hang Up</button>
-
-  <div class="videos">
-    <video id="webcamVideo" autoplay playsinline></video>
-    <video id="remoteVideo" autoplay playsinline></video>
-  </div>
-
-  <script type="module" src="./main.js"></script>
+  <h1>Join a Call</h1>
+  <div id="roomsList"></div>
+  <script type="module" src="listRooms.js"></script>
 </body>
 </html>

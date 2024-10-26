@@ -1,6 +1,6 @@
 // listRooms.js
-import firebase from 'firebase/app';
-import 'firebase/database';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
@@ -12,16 +12,14 @@ const firebaseConfig = {
   appId: "1:309006701748:web:2cfa73093e14fbcc2af3e1"
 };
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-
-const db = firebase.database();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 const roomsList = document.getElementById('roomsList');
 
 async function fetchRooms() {
-  const roomsRef = db.ref('rooms');
-  roomsRef.on('value', (snapshot) => {
+  const roomsRef = ref(db, 'rooms');
+  onValue(roomsRef, (snapshot) => {
     roomsList.innerHTML = ''; // Clear existing rooms
     snapshot.forEach((roomSnapshot) => {
       const room = roomSnapshot.val();

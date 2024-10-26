@@ -1,16 +1,3 @@
-import firebase from 'firebase/app';
-import 'firebase/database';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
-  authDomain: "lil-testing.firebaseapp.com",
-  databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
-  projectId: "lil-testing",
-  storageBucket: "lil-testing.appspot.com",
-  messagingSenderId: "309006701748",
-  appId: "1:309006701748:web:2cfa73093e14fbcc2af3e1"
-};
-
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
@@ -27,15 +14,19 @@ database.ref('realtimeCalls').on('value', (snapshot) => {
     const roomId = childSnapshot.key;
     const participants = childSnapshot.val().participants || 0;
 
-    // Create a list item for each room
-    const listItem = document.createElement('li');
-    listItem.textContent = `Room Code: ${roomId} - Participants: ${participants}`;
+    // Create a button for each room
+    const roomButton = document.createElement('button');
+    roomButton.textContent = `Room Code: ${roomId} - Participants: ${participants}`;
+    roomButton.style.display = 'block';
+    roomButton.style.margin = '0.5rem 0';
     
-    // Grey out the room if it has 2 participants
+    // Grey out the button if the room has 2 participants
     if (participants >= 2) {
-      listItem.style.color = 'grey';
+      roomButton.disabled = true;
+      roomButton.style.backgroundColor = 'grey';
     }
-    
-    roomList.appendChild(listItem);
+
+    // Add button to the list
+    roomList.appendChild(roomButton);
   });
 });

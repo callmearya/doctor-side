@@ -1,8 +1,8 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, onValue } from 'firebase/database';
+import { getFirestore, collection, getDocs } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3e1WrQ",
+  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
   authDomain: "lil-testing.firebaseapp.com",
   databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
   projectId: "lil-testing",
@@ -13,22 +13,22 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getFirestore(app);
 
 // HTML elements
 const roomsList = document.getElementById('roomsList');
 
-// Fetch and display active rooms
-const fetchRooms = () => {
-  const roomsRef = ref(db, 'calls'); // Assuming 'calls' is the node where room data is stored
-  onValue(roomsRef, (snapshot) => {
-    roomsList.innerHTML = ''; // Clear previous list
-    snapshot.forEach((childSnapshot) => {
-      const roomId = childSnapshot.key;
-      const roomElement = document.createElement('div');
-      roomElement.textContent = `Room: ${roomId}`;
-      roomsList.appendChild(roomElement);
-    });
+// Fetch and display active rooms from Firestore
+const fetchRooms = async () => {
+  const callsCollection = collection(db, 'calls');
+  const querySnapshot = await getDocs(callsCollection);
+  roomsList.innerHTML = ''; // Clear previous list
+
+  querySnapshot.forEach((doc) => {
+    const roomId = doc.id;
+    const roomElement = document.createElement('div');
+    roomElement.textContent = `Room: ${roomId}`;
+    roomsList.appendChild(roomElement);
   });
 };
 

@@ -1,8 +1,9 @@
+import './style.css';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
+  apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3e1WrQ",
   authDomain: "lil-testing.firebaseapp.com",
   databaseURL: "https://lil-testing-default-rtdb.firebaseio.com",
   projectId: "lil-testing",
@@ -17,7 +18,7 @@ if (!firebase.apps.length) {
 }
 const firestore = firebase.firestore();
 
-// HTML elements
+// HTML element to display rooms
 const roomsList = document.getElementById('roomsList');
 
 // Fetch and display active rooms from Firestore

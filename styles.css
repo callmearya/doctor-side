@@ -1,29 +1,28 @@
-/* styles.css */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
   text-align: center;
   margin: 20px;
 }
 
-h1 {
-  color: #333;
+video {
+  width: 40vw;
+  height: 30vw;
+  margin: 20px;
+  background: #ccc;
 }
 
 #roomsList {
-  margin: 20px 0;
+  margin: 20px;
 }
 
-button {
+#roomsList div {
+  padding: 10px;
+  border: 1px solid #ccc;
   margin: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
 }
 
-.room-available {
-  background-color: #4caf50; /* Green */
-}
-
-.room-full {
-  background-color: #f44336; /* Red */
-  color: #ccc;
+#roomsList div:hover {
+  background-color: #f0f0f0;
 }

@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Available Rooms</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Demo - List Rooms</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Join a Call</h1>
-  <div id="roomsList"></div>
-  <script type="module" src="listRooms.js"></script>
+    <h2>Active Rooms</h2>
+    <div id="roomsList"></div>
+
+    <h2>Your Webcam</h2>
+    <video id="webcamVideo" autoplay playsinline></video>
+    
+    <h2>Hang Up</h2>
+    <button id="hangupButton">Hang Up</button>
+
+    <script type="module" src="listRooms.js"></script>
+    <script type="module" src="room.js"></script>
 </body>
 </html>

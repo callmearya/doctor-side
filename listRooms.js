@@ -1,5 +1,5 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs } from 'firebase/firestore';
+import firebase from 'firebase/app';
+import 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD1b7InCyJf03f82MBrFCXNd_1lir3nWrQ",
@@ -11,17 +11,19 @@ const firebaseConfig = {
   appId: "1:309006701748:web:2cfa73093e14fbcc2af3e1"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// Initialize Firebase if not already initialized
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const firestore = firebase.firestore();
 
 // HTML elements
 const roomsList = document.getElementById('roomsList');
 
 // Fetch and display active rooms from Firestore
 const fetchRooms = async () => {
-  const callsCollection = collection(db, 'calls');
-  const querySnapshot = await getDocs(callsCollection);
+  const callsCollection = firestore.collection('calls');
+  const querySnapshot = await callsCollection.get();
   roomsList.innerHTML = ''; // Clear previous list
 
   querySnapshot.forEach((doc) => {

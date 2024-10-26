@@ -4,13 +4,6 @@ body {
   margin: 20px;
 }
 
-video {
-  width: 40vw;
-  height: 30vw;
-  margin: 20px;
-  background: #ccc;
-}
-
 #roomsList {
   margin: 20px;
 }
